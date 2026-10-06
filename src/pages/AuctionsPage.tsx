@@ -1,9 +1,10 @@
 import { useSearchParams } from 'react-router-dom'
-import { useMockDb } from '../state/MockDbProvider'
+import { useData } from '../state/DataProvider'
 import { getPublicAuctions, type AuctionSummary } from '../services/auctionService'
 import { AuctionCard } from '../components/auction/AuctionCard'
 import { AuctionFilters, type SortKey, type StatusFilter } from '../components/auction/AuctionFilters'
 import { EmptyState } from '../components/ui/EmptyState'
+import { PageLoader } from '../components/layout/Guards'
 
 const matchStatus = (s: AuctionSummary, f: StatusFilter) =>
   f === 'todos' ||
@@ -14,7 +15,7 @@ const matchStatus = (s: AuctionSummary, f: StatusFilter) =>
 const norm = (t: string) => t.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
 export function AuctionsPage() {
-  const { db } = useMockDb()
+  const { db, loading } = useData()
   const [params, setParams] = useSearchParams()
   const status = (params.get('status') as StatusFilter) || 'todos'
   const q = params.get('q') ?? ''
@@ -68,7 +69,9 @@ export function AuctionsPage() {
       </div>
 
       <div className="mt-8">
-        {list.length === 0 ? (
+        {loading ? (
+          <PageLoader />
+        ) : list.length === 0 ? (
           <EmptyState
             title="Nenhum leilão encontrado"
             description="Tente outra busca ou limpe os filtros."

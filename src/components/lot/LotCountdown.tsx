@@ -9,7 +9,10 @@ import { formatDateTime } from '../../lib/format'
  * Não é autoridade: o encerramento oficial e a validade de lances são decididos pelo servidor.
  */
 export function LotCountdown({ lot, size = 'sm' }: { lot: Pick<Lot, 'status' | 'startsAt' | 'endsAt'>; size?: 'sm' | 'lg' }) {
-  const target = lot.status === 'agendado' ? lot.startsAt : lot.endsAt
+  const c0 = useCountdown(lot.startsAt)
+  // Agendado cujo início já passou é exibido como ativo (o servidor abre o lote).
+  const scheduled = lot.status === 'agendado' && !c0.done
+  const target = scheduled ? lot.startsAt : lot.endsAt
   const c = useCountdown(target)
 
   if (lot.status === 'vendido' || lot.status === 'sem_lances' || lot.status === 'cancelado' || lot.status === 'rascunho') {
@@ -21,10 +24,10 @@ export function LotCountdown({ lot, size = 'sm' }: { lot: Pick<Lot, 'status' | '
     )
   }
 
-  const prefix = lot.status === 'agendado' ? 'Abre em' : c.done ? 'Encerrado' : 'Encerra em'
+  const prefix = scheduled ? 'Abre em' : c.done ? 'Encerrado' : 'Encerra em'
   const tone = c.done
     ? 'text-slate-500'
-    : lot.status === 'agendado'
+    : scheduled
       ? 'text-sky-700'
       : c.totalMs <= URGENT_MS
         ? 'text-rose-600'

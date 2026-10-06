@@ -1,7 +1,10 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Gavel } from 'lucide-react'
-import { useMockDb } from '../state/MockDbProvider'
-import { getAuctionById, getBidsByLot, getLot } from '../services/auctionService'
+import { useData } from '../state/DataProvider'
+import { useAuth } from '../state/AuthProvider'
+import { fetchBidsByLot, getAuctionById, getLot } from '../services/auctionService'
+import { placeBid } from '../services/bidService'
 import { LotMediaGallery } from '../components/lot/LotMediaGallery'
 import { LotInfo } from '../components/lot/LotInfo'
 import { BidPanel } from '../components/lot/BidPanel'
@@ -9,17 +12,31 @@ import { BidHistory } from '../components/lot/BidHistory'
 import { LotCountdown } from '../components/lot/LotCountdown'
 import { SellerCard } from '../components/seller/SellerCard'
 import { EmptyState } from '../components/ui/EmptyState'
+import { PageLoader } from '../components/layout/Guards'
 import { formatBRL, padLotNumber } from '../lib/format'
 import { nextMinimumBid } from '../lib/lotRules'
 import { useToast } from '../components/ui/Toast'
+import type { Bid } from '../types/auction'
 
 export function LotPage() {
   const { leilaoId = '', loteId = '' } = useParams()
-  const { db, user, placeBid } = useMockDb()
+  const { db, loading, patchLot } = useData()
+  const { session } = useAuth()
   const toast = useToast()
   const summary = getAuctionById(db, leilaoId)
   const lot = getLot(db, leilaoId, loteId)
+  const [bids, setBids] = useState<Bid[]>([])
 
+  const loadBids = useCallback(() => {
+    fetchBidsByLot(loteId).then(setBids).catch(console.error)
+  }, [loteId])
+
+  // Recarrega o histórico quando o lote muda (novo lance de qualquer participante chega via realtime).
+  useEffect(() => {
+    loadBids()
+  }, [loadBids, lot?.bidCount, lot?.status, session?.user.id])
+
+  if (loading) return <PageLoader />
   if (!summary || !lot || summary.status === 'rascunho') {
     return (
       <div className="container-page py-16">
@@ -29,18 +46,37 @@ export function LotPage() {
   }
 
   const { auction, seller, lots } = summary
-  const bids = getBidsByLot(db, lot.id)
-  const isOwnLot = user.sellerId === auction.sellerId
-  const isLeading = bids[0]?.participantAlias === user.alias
+  const userId = session?.user.id
+  const isOwnLot = !!userId && userId === auction.sellerId
+  const isLeading = !!userId && lot.leaderId === userId
+  const winnerAlias = lot.status === 'vendido' ? bids[0]?.participantAlias : undefined
   const idx = lots.findIndex((l) => l.id === lot.id)
   const prev = lots[idx - 1]
   const next = lots[idx + 1]
+  const canBid = lot.status === 'ativo' || lot.status === 'agendado'
+  const antiSnipe = { window: auction.antiSnipeWindowSeconds / 60, extension: auction.antiSnipeExtensionSeconds / 60 }
 
-  const handleBid = (amount: number) => {
-    const res = placeBid(lot.id, amount)
-    if (res.ok) toast('Lance simulado registrado!', 'success')
+  const handleBid = async (amount: number) => {
+    const res = await placeBid(lot.id, amount)
+    if (res.ok) {
+      patchLot(res.lot)
+      loadBids()
+      toast('Lance registrado!', 'success')
+    }
     return res
   }
+
+  const panel = (
+    <BidPanel
+      lot={lot}
+      isLoggedIn={!!session}
+      isOwnLot={isOwnLot}
+      isLeading={isLeading}
+      winnerAlias={winnerAlias}
+      antiSnipeMinutes={antiSnipe}
+      onPlaceBid={handleBid}
+    />
+  )
 
   return (
     <div className="pb-28 lg:pb-0">
@@ -63,15 +99,13 @@ export function LotPage() {
             <h1 className="text-2xl font-extrabold">{lot.title}</h1>
           </header>
 
-          <LotMediaGallery media={lot.media} />
+          <LotMediaGallery media={lot.media} variety={lot.variety} />
 
           {/* Painel de lance no mobile logo após a mídia */}
-          <div className="lg:hidden">
-            <BidPanel lot={lot} isOwnLot={isOwnLot} isLeading={isLeading} onPlaceBid={handleBid} />
-          </div>
+          <div className="lg:hidden">{panel}</div>
 
           <LotInfo lot={lot} auction={auction} seller={seller} />
-          <BidHistory bids={bids} myAlias={user.alias} />
+          <BidHistory bids={bids} />
         </div>
 
         {/* Coluna lateral (desktop) */}
@@ -80,10 +114,10 @@ export function LotPage() {
             <header>
               <p className="text-sm font-semibold text-abyss-600">{padLotNumber(lot.number)} · {lot.variety}</p>
               <h1 className="mt-1 text-3xl font-extrabold leading-tight">{lot.title}</h1>
-              <p className="mt-1 text-slate-500">{lot.composition} · {lot.ageApprox}</p>
+              <p className="mt-1 text-slate-500">{[lot.composition, lot.ageApprox].filter(Boolean).join(' · ')}</p>
             </header>
-            <BidPanel lot={lot} isOwnLot={isOwnLot} isLeading={isLeading} onPlaceBid={handleBid} />
-            {seller && <div className="card p-4"><SellerCard seller={seller} compact /></div>}
+            {panel}
+            {seller && <div className="card p-4"><SellerCard seller={seller} location={auction.location} compact /></div>}
           </div>
         </aside>
       </div>
@@ -109,12 +143,12 @@ export function LotPage() {
           <div className="min-w-0 flex-1">
             <p className="text-lg font-extrabold leading-tight text-abyss-950">{formatBRL(lot.currentPrice ?? lot.startingPrice)}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              {lot.status === 'ativo' && <span className="whitespace-nowrap">mín. {formatBRL(nextMinimumBid(lot))}</span>}
+              {canBid && <span className="whitespace-nowrap">mín. {formatBRL(nextMinimumBid(lot))}</span>}
               <LotCountdown lot={lot} />
             </div>
           </div>
-          <a href="#painel-lance" className={lot.status === 'ativo' && !isOwnLot ? 'btn-primary' : 'btn-outline'}>
-            <Gavel className="h-4 w-4" /> {lot.status === 'ativo' && !isOwnLot ? 'Dar lance' : 'Detalhes'}
+          <a href="#painel-lance" className={canBid && !isOwnLot ? 'btn-primary' : 'btn-outline'}>
+            <Gavel className="h-4 w-4" /> {canBid && !isOwnLot ? 'Dar lance' : 'Detalhes'}
           </a>
         </div>
       </div>

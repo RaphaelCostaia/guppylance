@@ -1,10 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Search, ShieldCheck, Timer, Video } from 'lucide-react'
-import { useMockDb } from '../state/MockDbProvider'
+import { useData } from '../state/DataProvider'
 import { getPublicAuctions } from '../services/auctionService'
 import { AuctionCard } from '../components/auction/AuctionCard'
 import { FishPlaceholder } from '../components/media/FishPlaceholder'
+import { EmptyState } from '../components/ui/EmptyState'
+import { PageLoader } from '../components/layout/Guards'
 
 function Section({ title, subtitle, children, link }: { title: string; subtitle?: string; children: ReactNode; link?: string }) {
   return (
@@ -28,12 +30,14 @@ function Section({ title, subtitle, children, link }: { title: string; subtitle?
 const VARIETIES = ['Full Red', 'Moscow Blue', 'Blue Grass', 'Red Dragon', 'Japan Blue', 'Snakeskin', 'Platinum', 'Dumbo Ear'] as const
 
 export function HomePage() {
-  const { db } = useMockDb()
+  const { db, loading } = useData()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const all = getPublicAuctions(db)
 
-  const featured = all.filter((s) => s.auction.featured && s.status !== 'encerrado').slice(0, 3)
+  const open = all.filter((s) => s.status === 'ativo' || s.status === 'agendado')
+  // Sem destaque marcado, mostra os leilões em andamento/agendados.
+  const featured = (open.some((s) => s.auction.featured) ? open.filter((s) => s.auction.featured) : open).slice(0, 3)
   const endingSoon = all
     .filter((s) => s.nextEndsAt)
     .sort((a, b) => a.nextEndsAt!.localeCompare(b.nextEndsAt!))
@@ -101,23 +105,39 @@ export function HomePage() {
         </div>
       </section>
 
-      <Section title="Leilões em destaque" subtitle="Seleções especiais dos criadores" link="/leiloes">
-        {featured.map((s) => (
-          <AuctionCard key={s.auction.id} summary={s} />
-        ))}
-      </Section>
+      {loading ? (
+        <PageLoader />
+      ) : all.length === 0 ? (
+        <section className="container-page mt-14">
+          <EmptyState title="Nenhum leilão publicado ainda" description="Os primeiros leilões aparecerão aqui assim que forem publicados." />
+        </section>
+      ) : (
+        <>
+          {featured.length > 0 && (
+            <Section title="Leilões em destaque" subtitle="Seleções especiais dos criadores" link="/leiloes">
+              {featured.map((s) => (
+                <AuctionCard key={s.auction.id} summary={s} />
+              ))}
+            </Section>
+          )}
 
-      <Section title="Encerrando em breve" subtitle="Lotes com disputa nos minutos finais" link="/leiloes?status=ativos">
-        {endingSoon.map((s) => (
-          <AuctionCard key={s.auction.id} summary={s} />
-        ))}
-      </Section>
+          {endingSoon.length > 0 && (
+            <Section title="Encerrando em breve" subtitle="Lotes com disputa nos minutos finais" link="/leiloes?status=ativos">
+              {endingSoon.map((s) => (
+                <AuctionCard key={s.auction.id} summary={s} />
+              ))}
+            </Section>
+          )}
 
-      <Section title="Novos leilões" subtitle="Publicados recentemente" link="/leiloes">
-        {newest.map((s) => (
-          <AuctionCard key={s.auction.id} summary={s} />
-        ))}
-      </Section>
+          {newest.length > 0 && (
+            <Section title="Novos leilões" subtitle="Publicados recentemente" link="/leiloes">
+              {newest.map((s) => (
+                <AuctionCard key={s.auction.id} summary={s} />
+              ))}
+            </Section>
+          )}
+        </>
+      )}
     </div>
   )
 }

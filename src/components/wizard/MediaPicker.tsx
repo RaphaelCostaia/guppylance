@@ -1,25 +1,37 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { ImagePlus, Video, X } from 'lucide-react'
-import type { MediaItem, Variety } from '../../types/auction'
+import type { Variety } from '../../types/auction'
 import { MediaView } from '../media/MediaView'
+import type { DraftMedia } from './draft'
+
+const MAX_BYTES = 50 * 1024 * 1024
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm']
 
 /**
- * Mídia SIMULADA: arquivos escolhidos geram apenas previews locais (URL.createObjectURL).
- * Nenhum upload é feito. Futuro: upload para o storage e gravação das URLs no lote.
+ * Seleção de fotos e vídeos do lote. Os arquivos ficam como prévia local
+ * e só são enviados ao Storage quando o leilão é publicado.
  */
-export function MediaPicker({ media, variety, onChange }: { media: MediaItem[]; variety: Variety; onChange: (m: MediaItem[]) => void }) {
+export function MediaPicker({ media, variety, onChange }: { media: DraftMedia[]; variety: Variety; onChange: (m: DraftMedia[]) => void }) {
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const add = (type: MediaItem['type'], files?: FileList | null) => {
-    const id = () => `m-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-    const items: MediaItem[] = files && files.length
-      ? [...files].map((f) => ({ id: id(), type, variety, label: f.name, url: URL.createObjectURL(f) }))
-      : [{ id: id(), type, variety, label: type === 'video' ? 'Vídeo simulado' : 'Foto simulada' }]
-    onChange([...media, ...items])
+  const add = (type: DraftMedia['type'], files: FileList | null) => {
+    if (!files?.length) return
+    const allowed = type === 'image' ? IMAGE_TYPES : VIDEO_TYPES
+    const ok: DraftMedia[] = []
+    const rejected: string[] = []
+    for (const f of files) {
+      if (!allowed.includes(f.type)) rejected.push(`${f.name} (formato não aceito)`)
+      else if (f.size > MAX_BYTES) rejected.push(`${f.name} (acima de 50 MB)`)
+      else ok.push({ id: `m-${crypto.randomUUID()}`, type, variety, label: f.name, url: URL.createObjectURL(f), file: f })
+    }
+    setError(rejected.length ? `Não adicionados: ${rejected.join(', ')}.` : null)
+    onChange([...media, ...ok])
   }
 
-  const remove = (m: MediaItem) => {
+  const remove = (m: DraftMedia) => {
     if (m.url) URL.revokeObjectURL(m.url)
     onChange(media.filter((x) => x.id !== m.id))
   }
@@ -30,6 +42,7 @@ export function MediaPicker({ media, variety, onChange }: { media: MediaItem[]; 
         {media.map((m, i) => (
           <div key={m.id} className="group relative h-20 w-24 overflow-hidden rounded-xl ring-1 ring-slate-200">
             <MediaView item={m} variant={i} size="sm" />
+            {m.type === 'video' && <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white">vídeo</span>}
             <button type="button" onClick={() => remove(m)} aria-label="Remover mídia" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white opacity-90 hover:bg-black/80">
               <X className="h-3.5 w-3.5" />
             </button>
@@ -42,13 +55,10 @@ export function MediaPicker({ media, variety, onChange }: { media: MediaItem[]; 
           <span className="flex flex-col items-center gap-1"><Video className="h-5 w-5" />Vídeo</span>
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-        <button type="button" onClick={() => add('image')} className="font-medium text-abyss-700 hover:underline">+ foto de exemplo</button>
-        <button type="button" onClick={() => add('video')} className="font-medium text-abyss-700 hover:underline">+ vídeo de exemplo</button>
-        <span className="text-slate-400">Prévia local · nenhum arquivo é enviado</span>
-      </div>
-      <input ref={photoInput} type="file" accept="image/*" multiple hidden onChange={(e) => { add('image', e.target.files); e.target.value = '' }} />
-      <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => { add('video', e.target.files); e.target.value = '' }} />
+      <p className="mt-2 text-xs text-slate-400">JPG, PNG, WEBP, MP4, MOV ou WEBM · até 50 MB por arquivo · enviados ao publicar</p>
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+      <input ref={photoInput} type="file" accept={IMAGE_TYPES.join(',')} multiple hidden onChange={(e) => { add('image', e.target.files); e.target.value = '' }} />
+      <input ref={videoInput} type="file" accept={VIDEO_TYPES.join(',')} hidden onChange={(e) => { add('video', e.target.files); e.target.value = '' }} />
     </div>
   )
 }

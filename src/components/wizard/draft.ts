@@ -1,6 +1,6 @@
 import type { MediaItem, Variety } from '../../types/auction'
 
-/** Estado local do cadastro de leilão (nada é persistido nesta etapa). */
+/** Estado do formulário de cadastro (só vai ao servidor ao publicar). */
 export interface DraftAuction {
   title: string
   description: string
@@ -25,8 +25,11 @@ export interface DraftLot {
    * que ainda NÃO é calculado automaticamente.
    */
   endsAt: string
-  media: MediaItem[]
+  media: DraftMedia[]
 }
+
+/** Mídia escolhida no cadastro: arquivo real + prévia local até o upload na publicação. */
+export type DraftMedia = MediaItem & { file: File }
 
 export const VARIETIES: Variety[] = ['Full Red', 'Moscow Blue', 'Blue Grass', 'Red Dragon', 'Dumbo Ear', 'Albino Full Red', 'Japan Blue', 'Platinum', 'Snakeskin']
 
@@ -65,5 +68,6 @@ export function validateLot(l: DraftLot, startsAt: string) {
   if (!(l.minIncrement > 0)) e.push('incremento mínimo')
   if (!l.endsAt) e.push('data/hora de encerramento')
   else if (startsAt && l.endsAt <= startsAt) e.push('encerramento deve ser após o início')
+  else if (new Date(l.endsAt).getTime() <= Date.now()) e.push('encerramento já passou')
   return e
 }

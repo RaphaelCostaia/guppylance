@@ -1,19 +1,21 @@
 import { Link, useParams } from 'react-router-dom'
 import { CalendarDays, ChevronLeft, Layers, MapPin, Truck } from 'lucide-react'
-import { useMockDb } from '../state/MockDbProvider'
+import { useData } from '../state/DataProvider'
 import { getAuctionById } from '../services/auctionService'
 import { FishPlaceholder } from '../components/media/FishPlaceholder'
 import { AuctionStatusBadge } from '../components/ui/StatusBadge'
 import { SellerCard } from '../components/seller/SellerCard'
 import { LotCard } from '../components/lot/LotCard'
 import { EmptyState } from '../components/ui/EmptyState'
+import { PageLoader } from '../components/layout/Guards'
 import { formatDateTime } from '../lib/format'
 
 export function AuctionDetailPage() {
   const { id = '' } = useParams()
-  const { db } = useMockDb()
+  const { db, loading } = useData()
   const summary = getAuctionById(db, id)
 
+  if (loading) return <PageLoader />
   if (!summary || summary.status === 'rascunho') {
     return (
       <div className="container-page py-16">
@@ -42,7 +44,7 @@ export function AuctionDetailPage() {
             <h1 className="mt-3 max-w-3xl text-3xl font-extrabold text-white sm:text-4xl">{auction.title}</h1>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-abyss-200">
               <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> Início {formatDateTime(auction.startsAt)}</span>
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {auction.city}/{auction.state}</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {auction.location}</span>
               <span className="inline-flex items-center gap-1.5"><Layers className="h-4 w-4" /> {lots.length} lotes</span>
             </div>
           </div>
@@ -71,7 +73,7 @@ export function AuctionDetailPage() {
             {auction.pickupShippingInfo}
           </p>
         </div>
-        {seller && <SellerCard seller={seller} />}
+        {seller && <SellerCard seller={seller} location={auction.location} />}
       </div>
 
       <section className="container-page mt-12">

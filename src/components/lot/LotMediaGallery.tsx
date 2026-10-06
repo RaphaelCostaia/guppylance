@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { MediaItem } from '../../types/auction'
+import type { MediaItem, Variety } from '../../types/auction'
 import { MediaView } from '../media/MediaView'
 
-/** Galeria de mídia do lote: preparada para N fotos e vídeos por lote. */
-export function LotMediaGallery({ media }: { media: MediaItem[] }) {
+/** Galeria de mídia do lote: N fotos e vídeos por lote (ilustração quando não há mídia). */
+export function LotMediaGallery({ media: items, variety }: { media: MediaItem[]; variety: Variety }) {
   const [index, setIndex] = useState(0)
-  if (media.length === 0) return null
+  const media: MediaItem[] = items.length ? items : [{ id: 'placeholder', type: 'image', variety, label: 'Sem fotos enviadas' }]
   const current = media[index]!
   const go = (d: number) => setIndex((i) => (i + d + media.length) % media.length)
 

@@ -1,15 +1,20 @@
 import { Link } from 'react-router-dom'
 import { CreditCard, Trophy } from 'lucide-react'
-import { useMockDb } from '../state/MockDbProvider'
+import { useData } from '../state/DataProvider'
+import { useAuth } from '../state/AuthProvider'
 import { getWonLots } from '../services/auctionService'
+import { PageLoader } from '../components/layout/Guards'
 import { MediaView } from '../components/media/MediaView'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatBRL, formatDate, padLotNumber } from '../lib/format'
 
 export function WonLotsPage() {
-  const { db, user } = useMockDb()
-  const groups = getWonLots(db, user.alias)
+  const { db, loading } = useData()
+  const { session } = useAuth()
+  const groups = getWonLots(db, session!.user.id)
   const grandTotal = groups.reduce((n, g) => n + g.total, 0)
+
+  if (loading) return <PageLoader />
 
   return (
     <div className="container-page py-10">
@@ -37,7 +42,7 @@ export function WonLotsPage() {
                   {g.lots.map((l) => (
                     <li key={l.id} className="flex items-center gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
                       <div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg">
-                        <MediaView item={l.media.find((m) => m.type === 'image')!} variant={l.number} size="sm" />
+                        <MediaView item={l.media.find((m) => m.type === 'image') ?? { id: 'ph', type: 'image', variety: l.variety, label: l.title }} variant={l.number} size="sm" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <Link to={`/leiloes/${g.auction.id}/lotes/${l.id}`} className="font-medium hover:text-abyss-700">
@@ -64,7 +69,7 @@ export function WonLotsPage() {
             <button disabled className="btn-primary mt-5 w-full">
               <CreditCard className="h-4 w-4" /> Pagamento em breve
             </button>
-            <p className="mt-3 text-xs text-slate-500">Pagamento e frete ainda não estão disponíveis nesta versão. Combine diretamente com o criador.</p>
+            <p className="mt-3 text-xs text-slate-500">Pagamento e frete ainda não estão disponíveis na plataforma. Combine diretamente com o organizador do leilão.</p>
           </aside>
         </div>
       )}

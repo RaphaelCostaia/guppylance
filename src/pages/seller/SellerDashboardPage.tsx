@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CircleDollarSign, Gavel, Layers, PlusCircle, Radio, Store, Trophy } from 'lucide-react'
-import { useMockDb } from '../../state/MockDbProvider'
+import { useData } from '../../state/DataProvider'
+import { useAuth } from '../../state/AuthProvider'
 import { getSellerAuctions, getSellerStats } from '../../services/sellerService'
 import { StatCard } from '../../components/seller/StatCard'
 import { AuctionStatusBadge } from '../../components/ui/StatusBadge'
@@ -8,8 +9,9 @@ import { LotCountdown } from '../../components/lot/LotCountdown'
 import { formatBRL } from '../../lib/format'
 
 export function SellerDashboardPage() {
-  const { db, user } = useMockDb()
-  const sellerId = user.sellerId ?? ''
+  const { db } = useData()
+  const { session } = useAuth()
+  const sellerId = session?.user.id ?? ''
   const stats = getSellerStats(db, sellerId)
   const auctions = getSellerAuctions(db, sellerId)
   const activeLots = auctions.flatMap((a) => a.lots.filter((l) => l.status === 'ativo').map((l) => ({ lot: l, auction: a.auction })))

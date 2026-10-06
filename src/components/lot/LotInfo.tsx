@@ -8,7 +8,7 @@ export function LotInfo({ lot, auction, seller }: { lot: Lot; auction: Auction; 
     ['Sexo / composição', lot.composition],
     ['Idade aproximada', lot.ageApprox],
     ['Criador', seller?.name ?? '—'],
-    ['Localização', `${auction.city}/${auction.state}`],
+    ['Localização', auction.location || "—"],
     ['Valor inicial', formatBRL(lot.startingPrice)],
     ['Incremento mínimo', formatBRL(lot.minIncrement)],
   ]

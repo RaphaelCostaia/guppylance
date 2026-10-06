@@ -1,7 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, ListChecks, PlusCircle } from 'lucide-react'
-import { useMockDb } from '../../state/MockDbProvider'
-import { getSeller } from '../../services/auctionService'
+import { useAuth } from '../../state/AuthProvider'
 
 const TABS = [
   { to: '/vendedor', label: 'Visão geral', icon: LayoutDashboard, end: true },
@@ -9,16 +8,16 @@ const TABS = [
   { to: '/vendedor/novo-leilao', label: 'Novo leilão', icon: PlusCircle },
 ]
 
+/** Área administrativa. O acesso é protegido por <RequireAdmin> e, no banco, por RLS. */
 export function SellerLayout() {
-  const { db, user } = useMockDb()
-  const seller = user.sellerId ? getSeller(db, user.sellerId) : undefined
+  const { profile } = useAuth()
 
   return (
     <div>
       <div className="border-b border-slate-200 bg-white">
         <div className="container-page pt-8">
-          <p className="eyebrow">Painel do vendedor</p>
-          <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{seller?.name ?? 'Minha loja'}</h1>
+          <p className="eyebrow">Painel administrativo</p>
+          <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{profile?.nickname ?? 'Admin'}</h1>
           <nav className="-mb-px mt-6 flex gap-1 overflow-x-auto">
             {TABS.map((t) => (
               <NavLink

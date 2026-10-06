@@ -30,7 +30,8 @@ export function LotsStep({ lots, startsAt, showErrors, onChange }: Props) {
       ...src,
       key: newKey(),
       title: src.title ? `${src.title} (cópia)` : '',
-      media: src.media.map((m) => ({ ...m, id: `${m.id}-c${Date.now()}` })),
+      // cada cópia tem sua própria prévia local (o arquivo é o mesmo)
+      media: src.media.map((m) => ({ ...m, id: `m-${crypto.randomUUID()}`, url: URL.createObjectURL(m.file) })),
     }
     const next = [...lots]
     next.splice(i + 1, 0, copy)
@@ -47,7 +48,10 @@ export function LotsStep({ lots, startsAt, showErrors, onChange }: Props) {
   }
 
   const confirmDelete = () => {
-    if (toDelete) onChange(lots.filter((l) => l.key !== toDelete.key))
+    if (toDelete) {
+      toDelete.media.forEach((m) => m.url && URL.revokeObjectURL(m.url))
+      onChange(lots.filter((l) => l.key !== toDelete.key))
+    }
     setToDelete(null)
   }
 

@@ -19,7 +19,7 @@ function Footer() {
           <p className="mt-3 max-w-sm text-sm text-abyss-300">Leilões especializados em Guppys e lotes de peixes ornamentais.</p>
         </div>
         <p className="rounded-xl border border-abyss-800 bg-abyss-900/60 px-4 py-3 text-xs text-abyss-300">
-          Versão de demonstração · dados fictícios · nenhum lance ou pagamento é real.
+          Versão de testes · lances são registrados, mas pagamento e frete são combinados diretamente com o organizador.
         </p>
       </div>
     </footer>

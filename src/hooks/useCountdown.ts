@@ -3,14 +3,22 @@ import { formatRemaining, getRemaining } from '../lib/time'
 
 /**
  * Relógio visual compartilhado: um único intervalo para todos os contadores da página.
- * Somente exibição — ver aviso em lib/time.ts.
+ * O horário é corrigido pelo offset do servidor (setServerOffset), mas continua sendo
+ * SOMENTE exibição — quem aceita/recusa lances e encerra lotes é o servidor.
  */
 const listeners = new Set<(now: number) => void>()
 let timer: ReturnType<typeof setInterval> | undefined
+let offsetMs = 0
+
+export function setServerOffset(serverNowMs: number) {
+  offsetMs = serverNowMs - Date.now()
+}
+
+export const serverNow = () => Date.now() + offsetMs
 
 function subscribe(fn: (now: number) => void) {
   listeners.add(fn)
-  if (!timer) timer = setInterval(() => listeners.forEach((l) => l(Date.now())), 1000)
+  if (!timer) timer = setInterval(() => listeners.forEach((l) => l(serverNow())), 1000)
   return () => {
     listeners.delete(fn)
     if (listeners.size === 0 && timer) {
@@ -21,7 +29,7 @@ function subscribe(fn: (now: number) => void) {
 }
 
 export function useNow() {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(serverNow)
   useEffect(() => subscribe(setNow), [])
   return now
 }

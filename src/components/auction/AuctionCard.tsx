@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CalendarDays, Layers, MapPin } from 'lucide-react'
 import type { AuctionSummary } from '../../services/auctionService'
-import { FishPlaceholder } from '../media/FishPlaceholder'
+import { MediaView } from '../media/MediaView'
 import { AuctionStatusBadge } from '../ui/StatusBadge'
 import { LotCountdown } from '../lot/LotCountdown'
 import { formatDate } from '../../lib/format'
@@ -9,11 +9,12 @@ import { formatDate } from '../../lib/format'
 export function AuctionCard({ summary }: { summary: AuctionSummary }) {
   const { auction, seller, lots, status, activeLots, nextEndsAt } = summary
   const href = `/leiloes/${auction.id}`
+  const cover = lots.flatMap((l) => l.media).find((m) => m.type === 'image' && m.url) ?? { id: 'ph', type: 'image' as const, variety: auction.coverVariety, label: auction.title }
 
   return (
     <article className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lift">
       <Link to={href} className="relative block aspect-[16/10] overflow-hidden">
-        <FishPlaceholder variety={auction.coverVariety} variant={2} className="h-full w-full transition duration-500 group-hover:scale-105" />
+        <MediaView item={cover} variant={2} className="transition duration-500 group-hover:scale-105" />
         <div className="absolute left-3 top-3">
           <AuctionStatusBadge status={status} className="bg-white/95" />
         </div>
@@ -41,7 +42,7 @@ export function AuctionCard({ summary }: { summary: AuctionSummary }) {
           </div>
           <div className="col-span-2 flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-slate-400" />
-            {auction.city}/{auction.state}
+            {auction.location}
           </div>
         </dl>
 

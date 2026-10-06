@@ -6,28 +6,30 @@ import { AuctionInfoStep } from '../../components/wizard/AuctionInfoStep'
 import { LotsStep } from '../../components/wizard/LotsStep'
 import { ReviewStep } from '../../components/wizard/ReviewStep'
 import { emptyLot, validateAuction, validateLot, type DraftAuction, type DraftLot } from '../../components/wizard/draft'
-import { simulatePublishAuction } from '../../services/sellerService'
-import { useMockDb } from '../../state/MockDbProvider'
-import { getSeller } from '../../services/auctionService'
+import { publishAuction } from '../../services/sellerService'
+import { useData } from '../../state/DataProvider'
+import { useAuth } from '../../state/AuthProvider'
 
 const STEPS = ['Dados do leilão', 'Lotes', 'Revisão']
 
 export function NewAuctionPage() {
-  const { db, user } = useMockDb()
-  const seller = user.sellerId ? getSeller(db, user.sellerId) : undefined
+  const { reload } = useData()
+  const { profile } = useAuth()
 
   const [step, setStep] = useState(0)
   const [auction, setAuction] = useState<DraftAuction>({
     title: '',
     description: '',
     startsAt: '',
-    location: seller ? `${seller.city}/${seller.state}` : '',
+    location: profile?.city ? [profile.city, profile.state].filter(Boolean).join('/') : '',
     pickupShipping: '',
   })
   const [lots, setLots] = useState<DraftLot[]>([emptyLot()])
   const [showErrors, setShowErrors] = useState(false)
   const [publishing, setPublishing] = useState(false)
-  const [published, setPublished] = useState(false)
+  const [published, setPublished] = useState<string | null>(null)
+  const [progress, setProgress] = useState('')
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   const auctionErrors = validateAuction(auction)
   const lotsValid = lots.length > 0 && lots.every((l) => validateLot(l, auction.startsAt).length === 0)
@@ -46,9 +48,35 @@ export function NewAuctionPage() {
 
   const publish = async () => {
     setPublishing(true)
-    await simulatePublishAuction({ title: auction.title, lots })
+    setPublishError(null)
+    const toIso = (local: string) => new Date(local).toISOString()
+    const res = await publishAuction(
+      {
+        title: auction.title.trim(),
+        description: auction.description.trim(),
+        startsAt: toIso(auction.startsAt),
+        location: auction.location.trim(),
+        pickupShipping: auction.pickupShipping.trim(),
+        lots: lots.map((l, i) => ({
+          number: i + 1,
+          title: l.title.trim(),
+          variety: l.variety,
+          quantity: l.quantity,
+          composition: l.composition.trim(),
+          ageApprox: l.ageApprox.trim(),
+          description: l.description.trim(),
+          startingPrice: l.startingPrice,
+          minIncrement: l.minIncrement,
+          endsAt: toIso(l.endsAt),
+          files: l.media.map((m) => ({ file: m.file, type: m.type })),
+        })),
+      },
+      setProgress,
+    )
     setPublishing(false)
-    setPublished(true)
+    if (!res.ok) return setPublishError(res.error)
+    await reload()
+    setPublished(res.id)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -60,17 +88,16 @@ export function NewAuctionPage() {
         </span>
         <h2 className="mt-4 text-2xl font-bold">Leilão publicado!</h2>
         <p className="mt-2 text-slate-600">
-          <strong>{auction.title}</strong> com {lots.length} {lots.length === 1 ? 'lote' : 'lotes'} foi publicado com sucesso.
+          <strong>{auction.title}</strong> com {lots.length} {lots.length === 1 ? 'lote' : 'lotes'} foi publicado com sucesso e já está visível para os participantes.
         </p>
-        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">Simulação: nada foi salvo. Na próxima etapa a publicação será enviada ao servidor.</p>
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-          <Link to="/vendedor/meus-leiloes" className="btn-dark">Ir para Meus leilões</Link>
+          <Link to={`/leiloes/${published}`} className="btn-dark">Ver leilão publicado</Link>
           <button
             className="btn-outline"
             onClick={() => {
               setAuction({ title: '', description: '', startsAt: '', location: auction.location, pickupShipping: '' })
               setLots([emptyLot()])
-              setPublished(false)
+              setPublished(null)
               goTo(0)
             }}
           >
@@ -93,6 +120,14 @@ export function NewAuctionPage() {
       {step === 1 && <LotsStep lots={lots} startsAt={auction.startsAt} showErrors={showErrors} onChange={setLots} />}
       {step === 2 && <ReviewStep auction={auction} lots={lots} />}
 
+      {step === 2 && publishing && <p className="mt-4 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-800">{progress}</p>}
+      {step === 2 && publishError && <p className="mt-4 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{publishError}</p>}
+      {step === 2 && !lotsValid && (
+        <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Algum horário de encerramento já passou. Volte e ajuste os lotes antes de publicar.
+        </p>
+      )}
+
       {showErrors && step === 1 && !lotsValid && (
         <p className="mt-4 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {lots.length === 0 ? 'Adicione pelo menos um lote.' : 'Há lotes com campos obrigatórios pendentes (destacados acima).'}
@@ -101,7 +136,7 @@ export function NewAuctionPage() {
 
       <div className="sticky bottom-0 -mx-4 mt-8 flex items-center justify-between gap-3 border-t border-slate-200 bg-[#f4f8f9]/95 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0">
         {step > 0 ? (
-          <button onClick={() => goTo(step - 1)} className="btn-outline">
+          <button onClick={() => goTo(step - 1)} disabled={publishing} className="btn-outline">
             <ArrowLeft className="h-4 w-4" /> {step === 2 ? 'Voltar e editar' : 'Voltar'}
           </button>
         ) : (
@@ -112,7 +147,7 @@ export function NewAuctionPage() {
             Continuar <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
-          <button onClick={publish} disabled={publishing} className="btn-primary">
+          <button onClick={publish} disabled={publishing || !lotsValid} className="btn-primary">
             {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />} Publicar leilão
           </button>
         )}

@@ -3,8 +3,8 @@ import type { Bid } from '../../types/auction'
 import { formatBRL, formatDateTime, formatTime } from '../../lib/format'
 import { Trophy } from 'lucide-react'
 
-/** Histórico de lances. Participantes aparecem sempre mascarados (privacidade). */
-export function BidHistory({ bids, myAlias }: { bids: Bid[]; myAlias: string }) {
+/** Histórico de lances. Participantes aparecem pelo apelido público (nunca nome completo). */
+export function BidHistory({ bids }: { bids: Bid[] }) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? bids : bids.slice(0, 8)
 
@@ -16,7 +16,7 @@ export function BidHistory({ bids, myAlias }: { bids: Bid[]; myAlias: string }) 
       </div>
 
       {bids.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-slate-500">Nenhum lance ainda. Seja o primeiro!</p>
+        <p className="px-5 py-8 text-center text-sm text-slate-500">Nenhum lance ainda.</p>
       ) : (
         <table className="w-full text-sm">
           <thead>
@@ -28,7 +28,7 @@ export function BidHistory({ bids, myAlias }: { bids: Bid[]; myAlias: string }) 
           </thead>
           <tbody>
             {visible.map((b, i) => {
-              const mine = b.participantAlias === myAlias
+              const mine = b.isMine
               const recent = Date.now() - new Date(b.createdAt).getTime() < 5000
               return (
                 <tr key={b.id} className={`border-t border-slate-100 ${recent ? 'animate-flash' : ''}`}>

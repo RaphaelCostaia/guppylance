@@ -1,54 +1,57 @@
-# GuppyLance — MVP navegável (frontend com mock data)
+# GuppyLance — leilões de Guppys
 
-Plataforma de leilões de Guppys. Estrutura: **Leilão → vários lotes → vários lances**, cada lote com disputa independente.
+Plataforma de leilões online de Guppys. Estrutura: **Leilão → vários lotes → vários lances**, cada lote com disputa, contador e vencedor independentes.
 
-> Esta etapa é **somente frontend**: sem backend, banco, autenticação, realtime, upload, pagamentos ou APIs externas. Tudo roda com mock data + estado local (recarregar a página volta ao estado inicial).
+- **Frontend:** Vite + React + TypeScript + Tailwind (deploy na Vercel).
+- **Backend:** Supabase (Postgres + Auth + Realtime + Storage), plano gratuito.
 
-## Rodar
+## Regras garantidas pelo servidor
+
+Tudo em [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql):
+
+- lances só entram pela função `place_bid`, que trava a linha do lote (lances simultâneos são processados um por vez);
+- o servidor valida login, horário oficial, valor mínimo e impede o organizador de dar lance no próprio lote;
+- **anti-sniping:** lance nos últimos 2 min estende só aquele lote em +2 min (configurável por leilão);
+- `close_expired_lots` (pg_cron a cada minuto) abre lotes agendados e encerra os vencidos: com lance → `vendido` (vencedor = maior lance), sem lance → `sem_lances`;
+- histórico de lances é preservado (lote com lances não pode ser apagado);
+- só **admin** cria, edita e cancela leilões (RLS); participantes aparecem pelo **apelido**.
+
+## Configuração (uma vez)
+
+1. Crie um projeto em [supabase.com](https://supabase.com) (plano Free).
+2. **SQL Editor** → cole todo o conteúdo de `supabase/migrations/0001_init.sql` → **Run**.
+3. **Authentication → URL Configuration**:
+   - Site URL: `https://guppylance.vercel.app`
+   - Redirect URLs: `https://guppylance.vercel.app/**` e `http://localhost:5173/**`
+4. **Project Settings → API**: copie a *Project URL* e a chave *anon / publishable*.
+5. Na **Vercel → Settings → Environment Variables**, crie:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+   e faça **Redeploy**. Para rodar localmente, copie `.env.example` para `.env.local` com os mesmos valores.
+6. Cadastre-se no site e torne sua conta admin (SQL Editor):
+
+   ```sql
+   update public.profiles set role = 'admin'
+   where id = (select id from auth.users where email = 'SEU-EMAIL');
+   ```
+
+> Nunca coloque a chave `service_role` no frontend nem na Vercel.
+
+## Rodar localmente
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # gera dist/
+npm run dev
 ```
 
-Deploy na Vercel: importar o repositório (framework Vite detectado automaticamente). O `vercel.json` redireciona todas as rotas para `index.html` (SPA). Nenhuma variável de ambiente é necessária.
+## Estrutura
 
-## Rotas
+- `src/services/` — acesso ao Supabase (`auctionService`, `bidService`, `sellerService`, `mappers`).
+- `src/state/` — `AuthProvider` (sessão/perfil) e `DataProvider` (catálogo + realtime dos lotes).
+- `src/hooks/useCountdown.ts` — contador visual corrigido pelo relógio do servidor (não é autoridade).
+- `src/pages/` — páginas; `src/pages/seller/` — painel admin e cadastro de leilão com upload.
 
-| Rota | Página |
-|---|---|
-| `/` | Início (destaques, encerrando em breve, novos) |
-| `/leiloes` | Listagem com filtros, busca e ordenação |
-| `/leiloes/:id` | Leilão + cards dos lotes |
-| `/leiloes/:leilaoId/lotes/:loteId` | Lote: galeria, info, painel de lance, histórico |
-| `/meus-lances` | Lotes em que o usuário participa |
-| `/leiloes-ganhos` | Lotes arrematados |
-| `/perfil` | Perfil (edição local) |
-| `/vendedor` | Dashboard do vendedor |
-| `/vendedor/meus-leiloes` | Leilões do vendedor |
-| `/vendedor/novo-leilao` | Cadastro em 3 etapas (dados → lotes → revisão) |
+## Fora do escopo (decisões em aberto)
 
-## Onde está cada coisa
-
-- `src/mocks/` — **todo o mock data** (leilões, lotes, lances, vendedores, usuário demo). Datas são relativas ao carregamento da página.
-- `src/types/auction.ts` — modelo de domínio (espelha o futuro backend).
-- `src/services/` — camada de dados. **Ponto de troca para o backend**:
-  - `auctionService.ts` — leituras (leilões, lotes, histórico, meus lances, ganhos);
-  - `bidService.ts` — `simulatePlaceBid` (substituir por `POST /lots/:id/bids`);
-  - `sellerService.ts` — estatísticas e `simulatePublishAuction`.
-- `src/state/MockDbProvider.tsx` — "banco" em memória + ação de lance simulado.
-- `src/lib/time.ts`, `src/hooks/useCountdown.ts` — contador **apenas visual**.
-- `src/lib/lotRules.ts` — rótulos de status, próximo lance mínimo e documentação das regras futuras (incl. anti-sniping, ainda em aberto).
-
-## Regras para a arquitetura futura (não implementadas aqui)
-
-- O **servidor** é a autoridade de horário, valida cada lance, define o vencedor e processa lances simultâneos com segurança.
-- O navegador apenas exibe o tempo restante; nenhuma regra crítica depende do relógio local.
-- Vendedor não pode dar lance no próprio lote; lance respeita o mínimo; sem lances após o encerramento oficial.
-- Lote sem lances → `sem_lances`; com lance válido → `vendido`; no máximo um vencedor por lote.
-- Decisões em aberto (anti-sniping, encerramento sequencial, proxy bid, reserva, pagamento, frete etc.) **não** foram transformadas em regra.
-
-## Usuário de demonstração
-
-"Rafael Martins" — aparece nos lances como **Participante 08** e é dono da loja **Rafa Guppys** (por isso não pode dar lance nos lotes dela; o painel do vendedor mostra os dados dessa loja).
+Pagamento, frete, notificações externas, proxy bid, preço de reserva, inadimplência, reabertura administrativa e encerramento sequencial automático.

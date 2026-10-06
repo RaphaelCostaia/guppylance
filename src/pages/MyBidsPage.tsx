@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownRight, Trophy } from 'lucide-react'
-import { useMockDb } from '../state/MockDbProvider'
-import { getMyBids, type MyBidEntry } from '../services/auctionService'
+import { useData } from '../state/DataProvider'
+import { useAuth } from '../state/AuthProvider'
+import { fetchMyBidTotals, getMyBids, type MyBidEntry } from '../services/auctionService'
+import { PageLoader } from '../components/layout/Guards'
 import { MediaView } from '../components/media/MediaView'
 import { LotCountdown } from '../components/lot/LotCountdown'
 import { LotStatusBadge } from '../components/ui/StatusBadge'
@@ -12,9 +14,9 @@ import { isFinished } from '../lib/lotRules'
 
 function MyBidCard({ entry }: { entry: MyBidEntry }) {
   const { lot, auction, myHighest, isLeading } = entry
-  const live = lot.status === 'ativo'
+  const live = lot.status === 'ativo' || lot.status === 'agendado'
   const href = `/leiloes/${auction.id}/lotes/${lot.id}`
-  const cover = lot.media.find((m) => m.type === 'image')!
+  const cover = lot.media.find((m) => m.type === 'image') ?? { id: 'ph', type: 'image' as const, variety: lot.variety, label: lot.title }
 
   return (
     <article className="card flex flex-col overflow-hidden sm:flex-row">
@@ -73,9 +75,20 @@ function MyBidCard({ entry }: { entry: MyBidEntry }) {
 }
 
 export function MyBidsPage() {
-  const { db, user } = useMockDb()
+  const { db, loading } = useData()
+  const { session, profile } = useAuth()
+  const userId = session!.user.id
   const [tab, setTab] = useState<'ativos' | 'encerrados'>('ativos')
-  const entries = getMyBids(db, user.alias)
+  const [totals, setTotals] = useState<Map<string, number> | null>(null)
+
+  // Recalcula quando qualquer lote muda (ex.: alguém cobriu seu lance).
+  const lotsVersion = db.lots.reduce((n, l) => n + l.bidCount, 0)
+  useEffect(() => {
+    fetchMyBidTotals(userId).then(setTotals).catch(console.error)
+  }, [userId, lotsVersion])
+
+  if (loading || !totals) return <PageLoader />
+  const entries = getMyBids(db, totals, userId)
   const active = entries.filter((e) => !isFinished(e.lot.status))
   const ended = entries.filter((e) => isFinished(e.lot.status))
   const list = tab === 'ativos' ? active : ended
@@ -84,7 +97,7 @@ export function MyBidsPage() {
     <div className="container-page py-10">
       <p className="eyebrow">Área do comprador</p>
       <h1 className="mt-1 text-3xl font-bold">Meus lances</h1>
-      <p className="mt-1 text-slate-500">Lotes em que você está participando como <strong>{user.alias}</strong>.</p>
+      <p className="mt-1 text-slate-500">Lotes em que você está participando como <strong>{profile?.nickname}</strong>.</p>
 
       <div className="mt-8 inline-flex rounded-xl bg-slate-100 p-1">
         {(['ativos', 'encerrados'] as const).map((t) => (

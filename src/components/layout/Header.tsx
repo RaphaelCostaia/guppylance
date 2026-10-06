@@ -1,16 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, Search, X } from 'lucide-react'
-import { useMockDb } from '../../state/MockDbProvider'
-import { useToast } from '../ui/Toast'
+import { LogOut, Menu, Search, User, X } from 'lucide-react'
+import { useAuth } from '../../state/AuthProvider'
 import { initials } from '../../lib/format'
-
-const NAV = [
-  { to: '/leiloes', label: 'Leilões' },
-  { to: '/meus-lances', label: 'Meus lances' },
-  { to: '/leiloes-ganhos', label: 'Lotes ganhos' },
-  { to: '/vendedor', label: 'Painel do vendedor' },
-]
 
 export function Logo({ light }: { light?: boolean }) {
   return (
@@ -29,23 +21,45 @@ export function Logo({ light }: { light?: boolean }) {
 }
 
 export function Header() {
-  const { user } = useMockDb()
-  const toast = useToast()
+  const { session, profile, isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(false)
+  const [menu, setMenu] = useState(false)
   const [q, setQ] = useState('')
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const nav = [
+    { to: '/leiloes', label: 'Leilões' },
+    ...(session ? [{ to: '/meus-lances', label: 'Meus lances' }, { to: '/leiloes-ganhos', label: 'Lotes ganhos' }] : []),
+    ...(isAdmin ? [{ to: '/vendedor', label: 'Painel admin' }] : []),
+  ]
 
   useEffect(() => {
     setOpen(false)
+    setMenu(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (!menu) return
+    const close = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenu(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [menu])
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault()
     navigate(q.trim() ? `/leiloes?q=${encodeURIComponent(q.trim())}` : '/leiloes')
   }
 
-  const authSoon = () => toast('Autenticação chega na próxima etapa — você está no modo demonstração.')
+  const logout = async () => {
+    await signOut()
+    navigate('/')
+  }
+
+  const loginLink = `/entrar?voltar=${encodeURIComponent(location.pathname + location.search)}`
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-lg">
@@ -53,7 +67,7 @@ export function Header() {
         <Logo />
 
         <nav className="ml-4 hidden items-center gap-1 lg:flex">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
@@ -72,15 +86,39 @@ export function Header() {
         </form>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <button onClick={authSoon} className="btn-ghost hidden sm:inline-flex">
-            Entrar
-          </button>
-          <button onClick={authSoon} className="btn-dark hidden py-2 sm:inline-flex">
-            Criar conta
-          </button>
-          <Link to="/perfil" title="Perfil (usuário de demonstração)" className="grid h-9 w-9 place-items-center rounded-full bg-coral-100 text-sm font-bold text-coral-700 ring-2 ring-white">
-            {initials(user.name)}
-          </Link>
+          {session ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenu((v) => !v)}
+                title={profile?.nickname}
+                className="grid h-9 w-9 place-items-center rounded-full bg-coral-100 text-sm font-bold text-coral-700 ring-2 ring-white"
+              >
+                {initials(profile?.nickname ?? '?')}
+              </button>
+              {menu && (
+                <div className="card absolute right-0 top-11 w-52 overflow-hidden py-1 text-sm">
+                  <p className="truncate px-4 py-2 text-xs text-slate-500">
+                    Conectado como <strong className="text-abyss-950">{profile?.nickname}</strong>
+                  </p>
+                  <Link to="/perfil" className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50">
+                    <User className="h-4 w-4" /> Meu perfil
+                  </Link>
+                  <button onClick={logout} className="flex w-full items-center gap-2 px-4 py-2 text-left text-rose-600 hover:bg-rose-50">
+                    <LogOut className="h-4 w-4" /> Sair
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link to={loginLink} className="btn-ghost hidden sm:inline-flex">
+                Entrar
+              </Link>
+              <Link to="/criar-conta" className="btn-dark hidden py-2 sm:inline-flex">
+                Criar conta
+              </Link>
+            </>
+          )}
           <button className="btn-ghost p-2 lg:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -94,7 +132,7 @@ export function Header() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar leilão ou variedade" className="input pl-9" />
             </form>
-            {NAV.map((n) => (
+            {nav.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
@@ -103,17 +141,25 @@ export function Header() {
                 {n.label}
               </NavLink>
             ))}
-            <NavLink to="/perfil" className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700">
-              Perfil
-            </NavLink>
-            <div className="flex gap-2 pt-2 sm:hidden">
-              <button onClick={authSoon} className="btn-outline flex-1">
-                Entrar
-              </button>
-              <button onClick={authSoon} className="btn-dark flex-1">
-                Criar conta
-              </button>
-            </div>
+            {session ? (
+              <>
+                <NavLink to="/perfil" className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700">
+                  Meu perfil
+                </NavLink>
+                <button onClick={logout} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600">
+                  Sair
+                </button>
+              </>
+            ) : (
+              <div className="flex gap-2 pt-2 sm:hidden">
+                <Link to={loginLink} className="btn-outline flex-1">
+                  Entrar
+                </Link>
+                <Link to="/criar-conta" className="btn-dark flex-1">
+                  Criar conta
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

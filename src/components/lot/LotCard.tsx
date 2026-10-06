@@ -5,13 +5,13 @@ import { MediaView } from '../media/MediaView'
 import { LotStatusBadge } from '../ui/StatusBadge'
 import { LotCountdown } from './LotCountdown'
 import { formatBRL, padLotNumber } from '../../lib/format'
-import { isAwaitingOfficialClose, nextMinimumBid } from '../../lib/lotRules'
+import { displayStatus, isAwaitingOfficialClose, nextMinimumBid } from '../../lib/lotRules'
 import { useNow } from '../../hooks/useCountdown'
 
 export function LotCard({ lot }: { lot: Lot }) {
   const now = useNow()
   const href = `/leiloes/${lot.auctionId}/lotes/${lot.id}`
-  const cover = lot.media.find((m) => m.type === 'image') ?? lot.media[0]
+  const cover = lot.media.find((m) => m.type === 'image') ?? lot.media[0] ?? { id: 'ph', type: 'image' as const, variety: lot.variety, label: lot.title }
   const hasVideo = lot.media.some((m) => m.type === 'video')
   const finished = lot.status === 'vendido' || lot.status === 'sem_lances' || lot.status === 'cancelado'
 
@@ -23,7 +23,7 @@ export function LotCard({ lot }: { lot: Lot }) {
           {padLotNumber(lot.number)}
         </span>
         <div className="absolute right-3 top-3">
-          <LotStatusBadge status={lot.status} awaiting={isAwaitingOfficialClose(lot, now)} className="bg-white/95" />
+          <LotStatusBadge status={displayStatus(lot, now)} awaiting={isAwaitingOfficialClose(lot, now)} className="bg-white/95" />
         </div>
         {hasVideo && (
           <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
