@@ -1,0 +1,98 @@
+import type { Auction } from '../types/auction'
+import { daysFromNow, hoursFromNow } from './time'
+
+export const auctions: Auction[] = [
+  {
+    id: 'a1',
+    title: 'Leilão Guppys Premium — Outubro',
+    description:
+      'Seleção especial do plantel Guppy House com casais e trios de linhagens sólidas. Todos os peixes são acompanhados desde o nascimento, com alimentação viva e quarentena concluída.',
+    sellerId: 's1',
+    city: 'Campinas',
+    state: 'SP',
+    startsAt: hoursFromNow(-6),
+    pickupShippingInfo:
+      'Retirada em Campinas/SP ou envio por transportadora especializada (embalagem com oxigênio). Frete combinado após o encerramento.',
+    coverVariety: 'Moscow Blue',
+    featured: true,
+    createdAt: daysFromNow(-3),
+  },
+  {
+    id: 'a2',
+    title: 'Blue Collection — Serra Azul',
+    description:
+      'Lotes de Blue Grass e Japan Blue com cauda delta e excelente padrão de cor. Ideal para quem quer começar ou renovar uma linhagem azul.',
+    sellerId: 's2',
+    city: 'Belo Horizonte',
+    state: 'MG',
+    startsAt: hoursFromNow(-2),
+    pickupShippingInfo: 'Envio para todo o Brasil via Sedex às segundas e terças.',
+    coverVariety: 'Blue Grass',
+    featured: true,
+    createdAt: daysFromNow(-1),
+  },
+  {
+    id: 'a3',
+    title: 'Dragões & Serpentes — Edição Sul',
+    description:
+      'Red Dragon e Snakeskin de linhagem importada. Leilão agendado, com encerramento sequencial dos lotes a cada 3 minutos.',
+    sellerId: 's3',
+    city: 'Curitiba',
+    state: 'PR',
+    startsAt: daysFromNow(2),
+    pickupShippingInfo: 'Retirada em Curitiba/PR ou envio aéreo para capitais.',
+    coverVariety: 'Red Dragon',
+    featured: true,
+    createdAt: hoursFromNow(-5),
+  },
+  {
+    id: 'a5',
+    title: 'Mix Hobbista — Rafa Guppys',
+    description:
+      'Lotes variados de criação doméstica, ótimos para iniciantes. Um dos lotes foi cancelado pelo vendedor.',
+    sellerId: 's5',
+    city: 'Rio de Janeiro',
+    state: 'RJ',
+    startsAt: hoursFromNow(-1),
+    pickupShippingInfo: 'Retirada na Zona Sul do Rio de Janeiro/RJ.',
+    coverVariety: 'Snakeskin',
+    createdAt: hoursFromNow(-20),
+  },
+  {
+    id: 'a6',
+    title: 'Leilão Guppys Premium — Setembro',
+    description: 'Edição de setembro do leilão mensal da Guppy House. Encerrado.',
+    sellerId: 's1',
+    city: 'Campinas',
+    state: 'SP',
+    startsAt: daysFromNow(-20),
+    pickupShippingInfo: 'Retirada em Campinas/SP ou envio por transportadora especializada.',
+    coverVariety: 'Full Red',
+    createdAt: daysFromNow(-25),
+  },
+  {
+    id: 'a4',
+    title: 'Platinum & Dumbo — Setembro',
+    description: 'Leilão encerrado com lotes de Platinum e Dumbo Ear selecionados para exposição.',
+    sellerId: 's5',
+    city: 'Rio de Janeiro',
+    state: 'RJ',
+    startsAt: daysFromNow(-12),
+    pickupShippingInfo: 'Retirada na Zona Sul do Rio de Janeiro/RJ.',
+    coverVariety: 'Platinum',
+    createdAt: daysFromNow(-15),
+  },
+  {
+    // Rascunho: aparece apenas no painel do vendedor, nunca na listagem pública.
+    id: 'a7',
+    title: 'Japan Blue — Novembro (rascunho)',
+    description: 'Rascunho do próximo leilão. Ainda não publicado.',
+    sellerId: 's5',
+    city: 'Rio de Janeiro',
+    state: 'RJ',
+    startsAt: daysFromNow(20),
+    pickupShippingInfo: 'A definir.',
+    coverVariety: 'Japan Blue',
+    createdAt: hoursFromNow(-3),
+  },
+]
