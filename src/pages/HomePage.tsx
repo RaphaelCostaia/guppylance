@@ -90,7 +90,7 @@ export function HomePage() {
           {[
             { icon: Timer, t: 'Cada lote, sua disputa', d: 'Contador e histórico independentes por lote.' },
             { icon: Video, t: 'Fotos e vídeos', d: 'Veja os peixes nadando antes de dar lance.' },
-            { icon: ShieldCheck, t: 'Criadores verificados', d: 'Reputação visível de cada vendedor.' },
+            { icon: ShieldCheck, t: 'Lances seguros', d: 'Cada lance é validado no servidor, em tempo real.' },
           ].map((f) => (
             <div key={f.t} className="flex items-start gap-3 p-5">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-coral-50 text-coral-600">
