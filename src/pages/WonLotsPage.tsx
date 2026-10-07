@@ -66,10 +66,12 @@ export function WonLotsPage() {
             <p className="text-sm text-slate-500">Total arrematado</p>
             <p className="mt-1 text-3xl font-extrabold text-abyss-950">{formatBRL(grandTotal)}</p>
             <p className="mt-1 text-xs text-slate-500">{groups.reduce((n, g) => n + g.lots.length, 0)} lotes</p>
-            <button disabled className="btn-primary mt-5 w-full">
-              <CreditCard className="h-4 w-4" /> Pagamento em breve
-            </button>
-            <p className="mt-3 text-xs text-slate-500">Pagamento e frete ainda não estão disponíveis na plataforma. Combine diretamente com o organizador do leilão.</p>
+            <div className="mt-5 flex items-start gap-2 rounded-xl bg-coral-50 p-3 text-sm text-abyss-800">
+              <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-coral-600" />
+              <p>
+                <strong>Próximo passo:</strong> a Guppy Boroski entrará em contato para combinar pagamento e envio dos seus lotes.
+              </p>
+            </div>
           </aside>
         </div>
       )}

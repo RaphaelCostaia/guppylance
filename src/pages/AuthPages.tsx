@@ -142,7 +142,7 @@ export function SignupPage() {
         </div>
         <label className="flex items-start gap-2 text-sm text-slate-600">
           <input type="checkbox" className="mt-1" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} required />
-          <span>Entendo que lances são compromissos de compra e que esta é uma versão de testes da plataforma.</span>
+          <span>Entendo que cada lance é um compromisso de compra do lote.</span>
         </label>
         <ErrorBox text={error} />
         <button className="btn-primary w-full py-3" disabled={busy || !accepted}>
