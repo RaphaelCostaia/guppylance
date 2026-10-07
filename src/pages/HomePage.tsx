@@ -4,7 +4,8 @@ import { ArrowRight, Search, ShieldCheck, Timer, Video } from 'lucide-react'
 import { useData } from '../state/DataProvider'
 import { getPublicAuctions } from '../services/auctionService'
 import { AuctionCard } from '../components/auction/AuctionCard'
-import { FishPlaceholder } from '../components/media/FishPlaceholder'
+import { CATEGORY_LABEL, VARIETY_SUGGESTIONS } from '../lib/catalog'
+import type { FishCategory } from '../types/auction'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageLoader } from '../components/layout/Guards'
 
@@ -26,8 +27,6 @@ function Section({ title, subtitle, children, link }: { title: string; subtitle?
     </section>
   )
 }
-
-const VARIETIES = ['Full Red', 'Moscow Blue', 'Blue Grass', 'Red Dragon', 'Japan Blue', 'Snakeskin', 'Platinum', 'Dumbo Ear'] as const
 
 export function HomePage() {
   const { db, loading } = useData()
@@ -53,34 +52,39 @@ export function HomePage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden bg-abyss-950">
-        <div className="absolute inset-0 opacity-60">
-          <FishPlaceholder variety="Moscow Blue" variant={2} className="h-full w-full" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-abyss-950 via-abyss-950/85 to-abyss-950/20" />
-        <div className="container-page relative py-16 sm:py-24">
-          <p className="eyebrow text-abyss-300">Leilões especializados em aquarismo</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-extrabold leading-tight text-white sm:text-5xl">
-            Os melhores Guppys do Brasil, <span className="text-coral-400">lote a lote</span>.
-          </h1>
-          <p className="mt-4 max-w-xl text-base text-abyss-200 sm:text-lg">
-            Acompanhe leilões de criadores selecionados, veja fotos e vídeos de cada lote e dispute cada um de forma independente.
-          </p>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(221,174,58,0.22),transparent_60%)]" />
+        <div className="container-page relative grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-[1fr_380px]">
+          <div>
+            <p className="eyebrow text-coral-300">Leilões oficiais Guppy Boroski</p>
+            <h1 className="mt-3 max-w-2xl font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
+              Guppys e peixes de <span className="text-coral-300">água salgada</span>, lote a lote.
+            </h1>
+            <p className="mt-4 max-w-xl text-base text-abyss-200 sm:text-lg">
+              Exemplares selecionados do plantel Boroski. Veja fotos e vídeos de cada lote e dispute cada um de forma independente.
+            </p>
 
-          <form onSubmit={onSearch} className="mt-8 flex max-w-xl gap-2 rounded-2xl bg-white p-2 shadow-lift">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por leilão ou variedade…" className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-sm outline-none" />
+            <form onSubmit={onSearch} className="mt-8 flex max-w-xl gap-2 rounded-2xl bg-white p-2 shadow-lift">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por leilão, variedade ou espécie…" className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-sm outline-none" />
+              </div>
+              <button className="btn-primary px-5">Buscar</button>
+            </form>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(Object.keys(CATEGORY_LABEL) as FishCategory[]).map((c) => (
+                <Link key={c} to={`/leiloes?categoria=${c}`} className="rounded-full border border-coral-300/50 bg-coral-300/10 px-4 py-1.5 text-xs font-semibold text-coral-200 hover:bg-coral-300/20">
+                  {CATEGORY_LABEL[c]}
+                </Link>
+              ))}
+              {VARIETY_SUGGESTIONS.guppy.slice(0, 5).map((v) => (
+                <Link key={v} to={`/leiloes?q=${encodeURIComponent(v)}`} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-abyss-100 hover:bg-white/15">
+                  {v}
+                </Link>
+              ))}
             </div>
-            <button className="btn-primary px-5">Buscar</button>
-          </form>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {VARIETIES.map((v) => (
-              <Link key={v} to={`/leiloes?q=${encodeURIComponent(v)}`} className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-abyss-100 backdrop-blur hover:bg-white/15">
-                {v}
-              </Link>
-            ))}
           </div>
+          <img src="/brand/boroski-logo.webp" alt="Guppy Boroski" className="mx-auto hidden w-full max-w-[380px] rounded-full shadow-[0_0_80px_-10px_rgba(221,174,58,0.45)] lg:block" />
         </div>
       </section>
 
@@ -114,7 +118,7 @@ export function HomePage() {
       ) : (
         <>
           {featured.length > 0 && (
-            <Section title="Leilões em destaque" subtitle="Seleções especiais dos criadores" link="/leiloes">
+            <Section title="Leilões em destaque" subtitle="Seleções especiais do plantel Boroski" link="/leiloes">
               {featured.map((s) => (
                 <AuctionCard key={s.auction.id} summary={s} />
               ))}

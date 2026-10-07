@@ -1,7 +1,7 @@
 import type { Db } from './auctionService'
 import { summarizeAuction } from './auctionService'
 import { errorMessage, MEDIA_BUCKET, supabase } from '../lib/supabase'
-import type { Variety } from '../types/auction'
+import type { FishCategory, Variety } from '../types/auction'
 
 /**
  * Área administrativa (somente admin cria e gerencia leilões).
@@ -42,6 +42,7 @@ export function getSellerStats(db: Db, sellerId: string) {
 export interface PublishLotInput {
   number: number
   title: string
+  category: FishCategory
   variety: Variety
   quantity: number
   composition: string
@@ -100,6 +101,7 @@ export async function publishAuction(input: PublishInput, onProgress?: (msg: str
           auction_id: auctionId,
           number: l.number,
           title: l.title,
+          category: l.category,
           variety: l.variety,
           quantity: l.quantity,
           composition: l.composition,

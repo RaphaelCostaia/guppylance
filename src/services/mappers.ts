@@ -32,6 +32,7 @@ export interface LotRow {
   auction_id: string
   number: number
   title: string
+  category: 'guppy' | 'agua_salgada' | null
   variety: string
   quantity: number
   composition: string
@@ -96,12 +97,13 @@ export const toMedia = (m: LotMediaRow, variety: Variety): MediaItem => ({
 
 /** `media` é preservado quando a linha vem do realtime (que não traz relações). */
 export const toLot = (r: LotRow, keepMedia?: MediaItem[]): Lot => {
-  const variety = r.variety as Variety
+  const variety = r.variety
   return {
     id: r.id,
     auctionId: r.auction_id,
     number: r.number,
     title: r.title,
+    category: r.category ?? 'guppy',
     variety,
     quantity: r.quantity,
     composition: r.composition,

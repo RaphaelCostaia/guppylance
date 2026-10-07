@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react'
+import { CATEGORY_LABEL } from '../../lib/catalog'
 
 export type StatusFilter = 'todos' | 'ativos' | 'proximos' | 'encerrados'
 export type SortKey = 'encerra' | 'recentes' | 'lotes'
@@ -17,12 +18,26 @@ interface Props {
   sort: SortKey
   varieties: string[]
   counts: Record<StatusFilter, number>
-  onChange: (patch: Partial<{ status: StatusFilter; q: string; variety: string; sort: SortKey }>) => void
+  category: string
+  onChange: (patch: Partial<{ status: StatusFilter; q: string; variety: string; sort: SortKey; category: string }>) => void
 }
 
-export function AuctionFilters({ status, q, variety, sort, varieties, counts, onChange }: Props) {
+export function AuctionFilters({ status, q, variety, sort, varieties, counts, category, onChange }: Props) {
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {[['', 'Todas as categorias'], ...Object.entries(CATEGORY_LABEL)].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => onChange({ category: key, variety: '' })}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+              category === key ? 'bg-abyss-950 text-coral-200' : 'border border-slate-300 bg-white text-slate-600 hover:border-abyss-400'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
         {TABS.map((t) => (
           <button
@@ -43,7 +58,7 @@ export function AuctionFilters({ status, q, variety, sort, varieties, counts, on
           <input value={q} onChange={(e) => onChange({ q: e.target.value })} placeholder="Buscar por nome do leilão" className="input pl-9" />
         </div>
         <select value={variety} onChange={(e) => onChange({ variety: e.target.value })} className="input">
-          <option value="">Todas as variedades</option>
+          <option value="">Todas as variedades/espécies</option>
           {varieties.map((v) => (
             <option key={v}>{v}</option>
           ))}

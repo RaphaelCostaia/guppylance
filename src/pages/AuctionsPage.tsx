@@ -4,6 +4,7 @@ import { getPublicAuctions, type AuctionSummary } from '../services/auctionServi
 import { AuctionCard } from '../components/auction/AuctionCard'
 import { AuctionFilters, type SortKey, type StatusFilter } from '../components/auction/AuctionFilters'
 import { EmptyState } from '../components/ui/EmptyState'
+import type { FishCategory } from '../types/auction'
 import { PageLoader } from '../components/layout/Guards'
 
 const matchStatus = (s: AuctionSummary, f: StatusFilter) =>
@@ -21,16 +22,19 @@ export function AuctionsPage() {
   const q = params.get('q') ?? ''
   const variety = params.get('variedade') ?? ''
   const sort = (params.get('ordem') as SortKey) || 'encerra'
+  const category = (params.get('categoria') as FishCategory | null) ?? ''
 
   const all = getPublicAuctions(db)
-  const varieties = [...new Set(db.lots.map((l) => l.variety))].sort()
+  const varieties = [...new Set(db.lots.filter((l) => !category || l.category === category).map((l) => l.variety))].sort()
 
   // A busca livre procura no título E nas variedades dos lotes (ex.: "Moscow").
   const textMatch = (s: AuctionSummary) =>
     !q || norm(s.auction.title).includes(norm(q)) || s.lots.some((l) => norm(l.variety).includes(norm(q)) || norm(l.title).includes(norm(q)))
   const varietyMatch = (s: AuctionSummary) => !variety || s.lots.some((l) => l.variety === variety)
 
-  const base = all.filter((s) => textMatch(s) && varietyMatch(s))
+  const categoryMatch = (s: AuctionSummary) => !category || s.lots.some((l) => l.category === category)
+
+  const base = all.filter((s) => textMatch(s) && varietyMatch(s) && categoryMatch(s))
   const counts = {
     todos: base.length,
     ativos: base.filter((s) => matchStatus(s, 'ativos')).length,
@@ -48,13 +52,14 @@ export function AuctionsPage() {
       return key(a).localeCompare(key(b))
     })
 
-  const update = (patch: Partial<{ status: StatusFilter; q: string; variety: string; sort: SortKey }>) => {
+  const update = (patch: Partial<{ status: StatusFilter; q: string; variety: string; sort: SortKey; category: string }>) => {
     const next = new URLSearchParams(params)
     const set = (k: string, v: string | undefined, def: string) => (v === undefined ? null : v && v !== def ? next.set(k, v) : next.delete(k))
     set('status', patch.status, 'todos')
     set('q', patch.q, '')
     set('variedade', patch.variety, '')
     set('ordem', patch.sort, 'encerra')
+    set('categoria', patch.category, '')
     setParams(next, { replace: true })
   }
 
@@ -62,10 +67,10 @@ export function AuctionsPage() {
     <div className="container-page py-10">
       <p className="eyebrow">Explorar</p>
       <h1 className="mt-1 text-3xl font-bold">Leilões</h1>
-      <p className="mt-1 text-slate-500">Encontre lotes de Guppys de criadores de todo o Brasil.</p>
+      <p className="mt-1 text-slate-500">Guppys e peixes de água salgada do plantel Boroski.</p>
 
       <div className="mt-8">
-        <AuctionFilters status={status} q={q} variety={variety} sort={sort} varieties={varieties} counts={counts} onChange={update} />
+        <AuctionFilters status={status} q={q} variety={variety} sort={sort} varieties={varieties} counts={counts} category={category} onChange={update} />
       </div>
 
       <div className="mt-8">

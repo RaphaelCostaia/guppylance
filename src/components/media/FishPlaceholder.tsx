@@ -10,11 +10,13 @@ interface Palette {
   body: [string, string]
   tail: [string, string]
   eye: string
-  pattern?: 'dots' | 'snake' | 'scales'
+  pattern?: 'dots' | 'snake' | 'scales' | 'bands'
   bigFins?: boolean
 }
 
-export const VARIETY_PALETTE: Record<Variety, Palette> = {
+const DEFAULT_PALETTE: Palette = { water: ['#1f2937', '#0a0908'], body: ['#fde68a', '#b45309'], tail: ['#f59e0b', '#78350f'], eye: '#111827' }
+
+export const VARIETY_PALETTE: Record<string, Palette> = {
   'Full Red': { water: ['#164e63', '#062530'], body: ['#fecaca', '#ef4444'], tail: ['#f87171', '#b91c1c'], eye: '#111827' },
   'Albino Full Red': { water: ['#155e75', '#083344'], body: ['#fff1f2', '#fda4af'], tail: ['#fb7185', '#e11d48'], eye: '#dc2626' },
   'Moscow Blue': { water: ['#0f3d5c', '#04121f'], body: ['#93c5fd', '#1e3a8a'], tail: ['#3b82f6', '#172554'], eye: '#020617' },
@@ -24,6 +26,15 @@ export const VARIETY_PALETTE: Record<Variety, Palette> = {
   'Dumbo Ear': { water: ['#1e3a5f', '#0b1626'], body: ['#e2e8f0', '#94a3b8'], tail: ['#c4b5fd', '#6d28d9'], eye: '#111827', bigFins: true },
   Platinum: { water: ['#1f3b4d', '#0a1820'], body: ['#ffffff', '#e2e8f0'], tail: ['#f8fafc', '#cbd5e1'], eye: '#111827' },
   Snakeskin: { water: ['#14532d', '#052e16'], body: ['#fde68a', '#a16207'], tail: ['#facc15', '#854d0e'], eye: '#111827', pattern: 'snake' },
+  Leopard: { water: ['#1f2937', '#0a0908'], body: ['#fde68a', '#c2410c'], tail: ['#fb923c', '#9a3412'], eye: '#111827', pattern: 'dots' },
+  // Água salgada
+  'Palhaço Ocellaris': { water: ['#0e4f66', '#031d2b'], body: ['#fdba74', '#ea580c'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'bands' },
+  'Palhaço Percula': { water: ['#0e4f66', '#031d2b'], body: ['#fdba74', '#ea580c'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'bands' },
+  'Cirurgião Azul': { water: ['#0c4a6e', '#020617'], body: ['#60a5fa', '#1e3a8a'], tail: ['#fde047', '#ca8a04'], eye: '#020617' },
+  'Cirurgião Amarelo': { water: ['#0c4a6e', '#020617'], body: ['#fef08a', '#eab308'], tail: ['#fde047', '#ca8a04'], eye: '#111827' },
+  'Donzela Azul': { water: ['#0c4a6e', '#020617'], body: ['#7dd3fc', '#1d4ed8'], tail: ['#38bdf8', '#1e40af'], eye: '#020617' },
+  'Gramma Loreto': { water: ['#1e1b4b', '#020617'], body: ['#c084fc', '#7e22ce'], tail: ['#fde047', '#eab308'], eye: '#111827' },
+  Mandarim: { water: ['#134e4a', '#022c22'], body: ['#5eead4', '#1d4ed8'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'snake' },
 }
 
 interface Props {
@@ -35,7 +46,7 @@ interface Props {
 }
 
 export function FishPlaceholder({ variety, variant = 0, className = '', showWater = true }: Props) {
-  const p = VARIETY_PALETTE[variety]
+  const p = VARIETY_PALETTE[variety] ?? DEFAULT_PALETTE
   const uid = useId().replace(/:/g, '')
   const flip = variant % 2 === 1
   const female = variant % 3 === 1
@@ -108,6 +119,13 @@ export function FishPlaceholder({ variety, variant = 0, className = '', showWate
         <path d="M188 150 C220 118 292 112 332 138 C348 147 348 156 332 163 C292 188 220 182 188 150Z" fill={`url(#b${uid})`} />
         {p.pattern === 'snake' && (
           <path d="M210 140 q10 -8 20 0 t20 0 t20 0 t20 0 t20 0 M210 156 q10 -8 20 0 t20 0 t20 0 t20 0 t20 0" stroke="#422006" strokeOpacity="0.55" strokeWidth="2.4" fill="none" />
+        )}
+        {p.pattern === 'bands' && (
+          <g fill="#fff" stroke="#111827" strokeWidth="2">
+            <path d="M300 126 C306 140 306 156 300 170 L288 168 C292 154 292 142 288 128 Z" />
+            <path d="M250 120 C258 140 258 160 250 178 L236 176 C243 158 243 140 236 122 Z" />
+            <path d="M206 136 C210 146 210 156 206 164 L196 158 C198 152 198 146 196 142 Z" />
+          </g>
         )}
         {p.pattern === 'scales' && (
           <g fill="none" stroke="#fde68a" strokeOpacity="0.6" strokeWidth="1.6">

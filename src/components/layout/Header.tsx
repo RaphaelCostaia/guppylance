@@ -6,15 +6,11 @@ import { initials } from '../../lib/format'
 
 export function Logo({ light }: { light?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-abyss-700 to-abyss-950 shadow-sm">
-        <svg viewBox="0 0 64 64" className="h-6 w-6">
-          <path d="M10 32c6-9 18-11 26-6l14-10-3 16 3 16-14-10c-8 5-20 3-26-6z" fill="#ff7556" />
-          <circle cx="19" cy="30" r="2.6" fill="#062530" />
-        </svg>
-      </span>
-      <span className={`text-lg font-extrabold tracking-tight ${light ? 'text-white' : 'text-abyss-950'}`}>
-        Guppy<span className="text-coral-500">Lance</span>
+    <Link to="/" className="flex items-center gap-2.5" aria-label="Guppy Boroski — início">
+      <img src="/brand/boroski-logo.webp" alt="" className="h-10 w-10 rounded-full shadow-sm ring-1 ring-coral-400/40" />
+      <span className="flex flex-col leading-none">
+        <span className={`text-[10px] font-semibold uppercase tracking-[0.35em] ${light ? 'text-coral-200' : 'text-coral-600'}`}>Guppy</span>
+        <span className={`font-display text-lg font-bold tracking-wide ${light ? 'text-coral-300' : 'text-abyss-950'}`}>BOROSKI</span>
       </span>
     </Link>
   )

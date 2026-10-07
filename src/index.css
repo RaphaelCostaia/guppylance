@@ -7,7 +7,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-[#f4f8f9] text-slate-800 antialiased;
+    @apply bg-[#f7f6f2] text-slate-800 antialiased;
   }
   h1, h2, h3 {
     @apply tracking-tight text-abyss-950;
@@ -27,10 +27,10 @@
       disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-coral-500 text-white shadow-sm hover:bg-coral-600;
+    @apply btn bg-gradient-to-b from-coral-300 to-coral-500 text-abyss-950 shadow-sm hover:from-coral-200 hover:to-coral-400;
   }
   .btn-dark {
-    @apply btn bg-abyss-900 text-white hover:bg-abyss-800;
+    @apply btn bg-abyss-950 text-coral-200 hover:bg-abyss-800;
   }
   .btn-outline {
     @apply btn border border-slate-300 bg-white text-slate-700 hover:border-abyss-400 hover:text-abyss-800;
@@ -46,7 +46,7 @@
     @apply mb-1.5 block text-sm font-medium text-slate-700;
   }
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.14em] text-abyss-600;
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-coral-600;
   }
 }
 

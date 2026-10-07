@@ -1,6 +1,6 @@
-# GuppyLance — leilões de Guppys
+# Guppy Boroski — leilões oficiais
 
-Plataforma de leilões online de Guppys. Estrutura: **Leilão → vários lotes → vários lances**, cada lote com disputa, contador e vencedor independentes.
+Plataforma de leilões exclusiva da **Guppy Boroski**: Guppys e peixes de água salgada. Estrutura: **Leilão → vários lotes → vários lances**, cada lote com disputa, contador e vencedor independentes.
 
 - **Frontend:** Vite + React + TypeScript + Tailwind (deploy na Vercel).
 - **Backend:** Supabase (Postgres + Auth + Realtime + Storage), plano gratuito.
@@ -19,7 +19,7 @@ Tudo em [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
 ## Configuração (uma vez)
 
 1. Crie um projeto em [supabase.com](https://supabase.com) (plano Free).
-2. **SQL Editor** → cole todo o conteúdo de `supabase/migrations/0001_init.sql` → **Run**.
+2. **SQL Editor** → rode, em ordem e uma vez cada, `supabase/migrations/0001_init.sql` e `0002_categoria.sql`.
 3. **Authentication → URL Configuration**:
    - Site URL: `https://guppylance.vercel.app`
    - Redirect URLs: `https://guppylance.vercel.app/**` e `http://localhost:5173/**`

@@ -7,6 +7,7 @@ import { LotCountdown } from './LotCountdown'
 import { formatBRL, padLotNumber } from '../../lib/format'
 import { displayStatus, isAwaitingOfficialClose, nextMinimumBid } from '../../lib/lotRules'
 import { useNow } from '../../hooks/useCountdown'
+import { CATEGORY_LABEL } from '../../lib/catalog'
 
 export function LotCard({ lot }: { lot: Lot }) {
   const now = useNow()
@@ -33,7 +34,7 @@ export function LotCard({ lot }: { lot: Lot }) {
       </Link>
 
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-abyss-600">{lot.variety}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-coral-600">{CATEGORY_LABEL[lot.category]} · {lot.variety}</p>
         <h3 className="mt-0.5 text-base font-semibold">
           <Link to={href} className="hover:text-abyss-700">
             {lot.title}

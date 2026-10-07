@@ -1,13 +1,15 @@
+import { CATEGORY_LABEL } from '../../lib/catalog'
 import type { Auction, Lot, Seller } from '../../types/auction'
 import { formatBRL } from '../../lib/format'
 
 export function LotInfo({ lot, auction, seller }: { lot: Lot; auction: Auction; seller?: Seller }) {
   const rows: [string, string][] = [
-    ['Variedade / linhagem', lot.variety],
+    [lot.category === 'guppy' ? 'Variedade / linhagem' : 'Espécie', lot.variety],
     ['Quantidade', `${lot.quantity} ${lot.quantity === 1 ? 'peixe' : 'peixes'}`],
     ['Sexo / composição', lot.composition],
     ['Idade aproximada', lot.ageApprox],
-    ['Criador', seller?.name ?? '—'],
+    ['Categoria', CATEGORY_LABEL[lot.category]],
+    ['Criador', seller?.name ?? 'Guppy Boroski'],
     ['Localização', auction.location || "—"],
     ['Valor inicial', formatBRL(lot.startingPrice)],
     ['Incremento mínimo', formatBRL(lot.minIncrement)],
