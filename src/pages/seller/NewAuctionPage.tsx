@@ -60,7 +60,6 @@ export function NewAuctionPage() {
         lots: lots.map((l, i) => ({
           number: i + 1,
           title: l.title.trim(),
-          category: l.category,
           variety: l.variety.trim(),
           quantity: l.quantity,
           composition: l.composition.trim(),

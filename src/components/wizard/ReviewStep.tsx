@@ -1,4 +1,3 @@
-import { CATEGORY_LABEL } from '../../lib/catalog'
 import { CalendarDays, Image, MapPin, Truck, Video } from 'lucide-react'
 import type { DraftAuction, DraftLot } from './draft'
 import { MediaView } from '../media/MediaView'
@@ -42,7 +41,7 @@ export function ReviewStep({ auction, lots }: { auction: DraftAuction; lots: Dra
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-coral-600">{padLotNumber(i + 1)} · {CATEGORY_LABEL[l.category]} · {l.variety}</p>
+                  <p className="text-xs font-semibold text-coral-600">{padLotNumber(i + 1)} · {l.variety}</p>
                   <p className="font-semibold text-abyss-950">{l.title}</p>
                   <p className="text-sm text-slate-500">{l.composition} · {l.quantity} peixe(s){l.ageApprox && ` · ${l.ageApprox}`}</p>
                   {l.description && <p className="mt-1 text-sm text-slate-600">{l.description}</p>}

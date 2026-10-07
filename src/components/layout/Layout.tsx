@@ -16,7 +16,7 @@ function Footer() {
       <div className="container-page flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Logo light />
-          <p className="mt-3 max-w-sm text-sm text-abyss-300">Leilões oficiais da Guppy Boroski — Guppys e peixes de água salgada.</p>
+          <p className="mt-3 max-w-sm text-sm text-abyss-300">Leilões oficiais da Guppy Boroski — Guppys selecionados do nosso plantel.</p>
         </div>
         <p className="rounded-xl border border-abyss-800 bg-abyss-900/60 px-4 py-3 text-xs text-abyss-300">
           Versão de testes · lances são registrados, mas pagamento e frete são combinados diretamente com o organizador.

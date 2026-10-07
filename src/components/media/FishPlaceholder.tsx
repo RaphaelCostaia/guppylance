@@ -27,14 +27,6 @@ export const VARIETY_PALETTE: Record<string, Palette> = {
   Platinum: { water: ['#1f3b4d', '#0a1820'], body: ['#ffffff', '#e2e8f0'], tail: ['#f8fafc', '#cbd5e1'], eye: '#111827' },
   Snakeskin: { water: ['#14532d', '#052e16'], body: ['#fde68a', '#a16207'], tail: ['#facc15', '#854d0e'], eye: '#111827', pattern: 'snake' },
   Leopard: { water: ['#1f2937', '#0a0908'], body: ['#fde68a', '#c2410c'], tail: ['#fb923c', '#9a3412'], eye: '#111827', pattern: 'dots' },
-  // Água salgada
-  'Palhaço Ocellaris': { water: ['#0e4f66', '#031d2b'], body: ['#fdba74', '#ea580c'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'bands' },
-  'Palhaço Percula': { water: ['#0e4f66', '#031d2b'], body: ['#fdba74', '#ea580c'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'bands' },
-  'Cirurgião Azul': { water: ['#0c4a6e', '#020617'], body: ['#60a5fa', '#1e3a8a'], tail: ['#fde047', '#ca8a04'], eye: '#020617' },
-  'Cirurgião Amarelo': { water: ['#0c4a6e', '#020617'], body: ['#fef08a', '#eab308'], tail: ['#fde047', '#ca8a04'], eye: '#111827' },
-  'Donzela Azul': { water: ['#0c4a6e', '#020617'], body: ['#7dd3fc', '#1d4ed8'], tail: ['#38bdf8', '#1e40af'], eye: '#020617' },
-  'Gramma Loreto': { water: ['#1e1b4b', '#020617'], body: ['#c084fc', '#7e22ce'], tail: ['#fde047', '#eab308'], eye: '#111827' },
-  Mandarim: { water: ['#134e4a', '#022c22'], body: ['#5eead4', '#1d4ed8'], tail: ['#fb923c', '#c2410c'], eye: '#111827', pattern: 'snake' },
 }
 
 interface Props {

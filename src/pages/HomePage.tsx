@@ -4,8 +4,7 @@ import { ArrowRight, Search, ShieldCheck, Timer, Video } from 'lucide-react'
 import { useData } from '../state/DataProvider'
 import { getPublicAuctions } from '../services/auctionService'
 import { AuctionCard } from '../components/auction/AuctionCard'
-import { CATEGORY_LABEL, VARIETY_SUGGESTIONS } from '../lib/catalog'
-import type { FishCategory } from '../types/auction'
+import { VARIETY_SUGGESTIONS } from '../lib/catalog'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageLoader } from '../components/layout/Guards'
 
@@ -57,27 +56,22 @@ export function HomePage() {
           <div>
             <p className="eyebrow text-coral-300">Leilões oficiais Guppy Boroski</p>
             <h1 className="mt-3 max-w-2xl font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
-              Guppys e peixes de <span className="text-coral-300">água salgada</span>, lote a lote.
+              Os Guppys do plantel Boroski, <span className="text-coral-300">lote a lote</span>.
             </h1>
             <p className="mt-4 max-w-xl text-base text-abyss-200 sm:text-lg">
-              Exemplares selecionados do plantel Boroski. Veja fotos e vídeos de cada lote e dispute cada um de forma independente.
+              Linhagens selecionadas com rigor. Veja fotos e vídeos de cada lote e dispute cada um de forma independente.
             </p>
 
             <form onSubmit={onSearch} className="mt-8 flex max-w-xl gap-2 rounded-2xl bg-white p-2 shadow-lift">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por leilão, variedade ou espécie…" className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-sm outline-none" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Busque por leilão ou variedade…" className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-sm outline-none" />
               </div>
               <button className="btn-primary px-5">Buscar</button>
             </form>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {(Object.keys(CATEGORY_LABEL) as FishCategory[]).map((c) => (
-                <Link key={c} to={`/leiloes?categoria=${c}`} className="rounded-full border border-coral-300/50 bg-coral-300/10 px-4 py-1.5 text-xs font-semibold text-coral-200 hover:bg-coral-300/20">
-                  {CATEGORY_LABEL[c]}
-                </Link>
-              ))}
-              {VARIETY_SUGGESTIONS.guppy.slice(0, 5).map((v) => (
+              {VARIETY_SUGGESTIONS.slice(0, 8).map((v) => (
                 <Link key={v} to={`/leiloes?q=${encodeURIComponent(v)}`} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-abyss-100 hover:bg-white/15">
                   {v}
                 </Link>

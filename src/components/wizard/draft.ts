@@ -1,4 +1,4 @@
-import type { FishCategory, MediaItem, Variety } from '../../types/auction'
+import type { MediaItem, Variety } from '../../types/auction'
 
 /** Estado do formulário de cadastro (só vai ao servidor ao publicar). */
 export interface DraftAuction {
@@ -12,7 +12,6 @@ export interface DraftAuction {
 export interface DraftLot {
   key: string
   title: string
-  category: FishCategory
   variety: Variety
   quantity: number
   composition: string
@@ -39,7 +38,6 @@ export function emptyLot(): DraftLot {
   return {
     key: newKey(),
     title: '',
-    category: 'guppy',
     variety: '',
     quantity: 2,
     composition: 'Casal',
@@ -63,7 +61,7 @@ export function validateAuction(a: DraftAuction) {
 export function validateLot(l: DraftLot, startsAt: string) {
   const e: string[] = []
   if (!l.title.trim()) e.push('título')
-  if (!l.variety.trim()) e.push(l.category === 'guppy' ? 'variedade' : 'espécie')
+  if (!l.variety.trim()) e.push('variedade')
   if (!(l.quantity > 0)) e.push('quantidade')
   if (!(l.startingPrice > 0)) e.push('valor inicial')
   if (!(l.minIncrement > 0)) e.push('incremento mínimo')

@@ -32,7 +32,6 @@ export interface LotRow {
   auction_id: string
   number: number
   title: string
-  category: 'guppy' | 'agua_salgada' | null
   variety: string
   quantity: number
   composition: string
@@ -103,7 +102,6 @@ export const toLot = (r: LotRow, keepMedia?: MediaItem[]): Lot => {
     auctionId: r.auction_id,
     number: r.number,
     title: r.title,
-    category: r.category ?? 'guppy',
     variety,
     quantity: r.quantity,
     composition: r.composition,

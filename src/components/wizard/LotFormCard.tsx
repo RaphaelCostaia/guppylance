@@ -1,6 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronDown, Copy, Trash2 } from 'lucide-react'
-import type { FishCategory } from '../../types/auction'
-import { CATEGORY_LABEL, VARIETY_SUGGESTIONS } from '../../lib/catalog'
+import { VARIETY_SUGGESTIONS } from '../../lib/catalog'
 import { MediaPicker } from './MediaPicker'
 import type { DraftLot } from './draft'
 import { formatBRL, padLotNumber } from '../../lib/format'
@@ -32,7 +31,7 @@ export function LotFormCard({ lot, number, total, open, errors, showErrors, onTo
           <span className="min-w-0">
             <span className="block truncate font-semibold text-abyss-950">{lot.title || <span className="text-slate-400">{padLotNumber(number)} sem título</span>}</span>
             <span className="block truncate text-xs text-slate-500">
-              {CATEGORY_LABEL[lot.category]} · {lot.variety || '—'} · {lot.composition || '—'} · {lot.startingPrice ? formatBRL(lot.startingPrice) : 'sem valor'} · {lot.media.length} mídia(s)
+              {lot.variety || '—'} · {lot.composition || '—'} · {lot.startingPrice ? formatBRL(lot.startingPrice) : 'sem valor'} · {lot.media.length} mídia(s)
             </span>
           </span>
           <ChevronDown className={`ml-auto h-4 w-4 shrink-0 text-slate-400 transition ${open ? 'rotate-180' : ''}`} />
@@ -68,24 +67,18 @@ export function LotFormCard({ lot, number, total, open, errors, showErrors, onTo
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="label">Categoria *</label>
-              <select className="input" value={lot.category} onChange={(e) => onChange({ category: e.target.value as FishCategory, variety: '' })}>
-                {(Object.keys(CATEGORY_LABEL) as FishCategory[]).map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="label">{lot.category === 'guppy' ? 'Variedade *' : 'Espécie *'}</label>
+              <label className="label">Variedade *</label>
               <input
                 className="input"
                 list={`sug-${lot.key}`}
-                placeholder={lot.category === 'guppy' ? 'Ex.: Full Red' : 'Ex.: Palhaço Ocellaris'}
+                placeholder="Ex.: Full Red"
                 value={lot.variety}
                 onChange={(e) => onChange({ variety: e.target.value })}
               />
               <datalist id={`sug-${lot.key}`}>
-                {VARIETY_SUGGESTIONS[lot.category].map((v) => <option key={v} value={v} />)}
+                {VARIETY_SUGGESTIONS.map((v) => <option key={v} value={v} />)}
               </datalist>
             </div>
             <div>

@@ -14,10 +14,7 @@ export type AuctionPublication = 'rascunho' | 'publicado' | 'cancelado'
 /** Status exibido do leilão — derivado da publicação + lotes (ver lib/lotRules.ts). */
 export type AuctionStatus = 'rascunho' | 'agendado' | 'ativo' | 'encerrado' | 'cancelado'
 
-/** Categoria do lote. */
-export type FishCategory = 'guppy' | 'agua_salgada'
-
-/** Variedade (Guppy) ou espécie (água salgada) — texto livre com sugestões em lib/catalog.ts. */
+/** Variedade do Guppy — texto livre com sugestões em lib/catalog.ts. */
 export type Variety = string
 
 export interface MediaItem {
@@ -61,7 +58,6 @@ export interface Lot {
   auctionId: string
   number: number
   title: string
-  category: FishCategory
   variety: Variety
   quantity: number
   composition: string
